@@ -46,8 +46,8 @@ MAZE_SIZE = 60
 MAZE_NUM = 11
 SCREEN_SIZE = MAZE_SIZE * MAZE_NUM
 maze = []
-for y in range(MAZE_NUM):
-    maze.append([0]*MAZE_NUM)
+for y in range(MAZE_NUM): # ループ変数として自動的に初期化される (0,1,2...MAZE_NUM-1)
+    maze.append([0]*MAZE_NUM) # [[0][0]...MAZE_NUM]
 # =============== LEARNING ===============
 theta_0 = [0.0] * MAZE_NUM**2
 pi = [0.0] * MAZE_NUM**2
@@ -65,26 +65,28 @@ s_a_history = [[-1, -1]]
 # ============================================================
 
 # ******************** 文字の描画 ********************
+# メイン画面(sc)上に文字の描画
 def draw_text(sc, txt, x, y, siz, col, center):
-    fnt = pygame.font.Font(None, siz)
-    sur = fnt.render(txt, True, col)
+    fnt = pygame.font.Font(None, siz) # フォントからフォントオブジェクトを作成する：(None = default 標準的, 引数)
+    sur = fnt.render(txt, True, col) # renderメソッドによってテキストが実際にピクセルデータの集まりである「絵」に変換されます：(文字列, True = アンチエイリアス, サイズ)
 
     if center == True:
         x = x - sur.get_width()/2
-        y = y - sur.get_width()/2
+        y = y - sur.get_width()/2 # Typoの可能性があり、修正：get_height()
 
-    sc.blit(sur, [x, y])
+    sc.blit(sur, [x, y]) # scはpygame.display.set_mode()で作成した画面（メイン画面・ゲームウィンドウ全体）で、sc.blitは別のSurfaceを現在のSurface(sc)上に転送
 
 
 # ******************** 迷路全体／説明画面の描画 ********************
+# メイン画面(sc)上に迷路全体の描画
 def draw_all_maze(sc):
     for y in range(MAZE_NUM):
         for x in range(MAZE_NUM):
-            X = x * MAZE_SIZE
+            X = x * MAZE_SIZE # xは数、MAZE_SIZEは広さ
             Y = y * MAZE_SIZE
 
             if maze[y][x] == WALL:  # 壁
-                pygame.draw.rect(sc, GRAY, [X, Y, MAZE_SIZE, MAZE_SIZE])
+                pygame.draw.rect(sc, GRAY, [X, Y, MAZE_SIZE, MAZE_SIZE]) # rect:rectangleの略
             if maze[y][x] == ROAD:  # 通路
                 pygame.draw.rect(sc, WHITE, [X, Y, MAZE_SIZE, MAZE_SIZE])
             if maze[y][x] == WAY:   # 通った経路
@@ -160,17 +162,18 @@ def draw_all_maze(sc):
 # ============================================================
 
 # ******************** 棒倒し方による迷路の自動生成 ********************
-def make_maze():
-    XP = [0, 1, 0, -1]
+def make_maze(): # 迷路を自動生成するためのアルゴリズム
+    # オフセット
+    XP = [0, 1, 0, -1] 
     YP = [-1, 0, 1, 0]
 
     # ボードの周囲を壁にする
     for x in range(MAZE_NUM):
-        maze[0][x] = WALL
-        maze[MAZE_NUM-1][x] = WALL
+        maze[0][x] = WALL # 上壁
+        maze[MAZE_NUM-1][x] = WALL # 下壁
     for y in range(MAZE_NUM-1):
-        maze[y][0] = WALL
-        maze[y][MAZE_NUM-1] = WALL
+        maze[y][0] = WALL # 左壁
+        maze[y][MAZE_NUM-1] = WALL # 右壁
 
     # ボードの中を全て通路にする
     for y in range(1, MAZE_NUM-1):
@@ -178,17 +181,23 @@ def make_maze():
             maze[y][x] = ROAD
 
     # 棒倒し法
-    for y in range(2, MAZE_NUM-2, 2):
+    # 各2ステップごとに壁を作る y
+    for y in range(2, MAZE_NUM-2, 2): 
         for x in range(2, MAZE_NUM-2, 2):
             maze[y][x] = WALL
+    # 作った壁を倒す
     for y in range(2, MAZE_NUM-2, 2):
         for x in range(2, MAZE_NUM-2, 2):
-            d = random.randint(0, 3)
+            d = random.randint(0, 3) # 0:上, 1:右, 2:下, 3:左 最初の定義による
             if x > 2:
-                d = random.randint(0, 2)
+                d = random.randint(0, 2) #左方向が禁止、壁と重なる可能性があるから
             maze[y+YP[d]][x+XP[d]] = WALL
+                # y = 2, x = 2, d = 0 の場合:
+                # YP[0] = -1, XP[0] = 0
+                # 新しい壁の位置は (2 + (-1), 2 + 0) = (1, 2)
+                # maze[1][2] = WALL
 
-
+x = random.randint(0, 3) # 出力は
 # ******************** 通った通路の表示をなくす ********************
 def delete_way():
     for y in range(MAZE_NUM):
